@@ -10,17 +10,20 @@ import java.net.SocketException;
 import java.util.HashMap;
 
 public class BookServer {
-	NameTable table;
+	static NameTable table;
 	
-	public BookServer(HashMap<String,Integer> inventory) {
-	table = new NameTable(inventory);
+	public BookServer(HashMap<String,Integer> inventory, DatagramSocket ds) {
+	table = new NameTable(inventory, ds);
 	}
 	
   public static void main (String[] args) {
     int tcpPort;
     int udpPort;
-    boolean udp = true;
+    boolean udp = false;
     HashMap <String,Integer> inventory = new HashMap <String, Integer>();
+    DatagramSocket datasocket = null;
+    ServerSocket listener = null;
+    Socket s;
     
     if (args.length != 1) {
       System.out.println("ERROR: Provide 1 argument: input file containing initial inventory");
@@ -34,20 +37,66 @@ public class BookServer {
     
     // parse the inventory file
  	getInventory(inventory, fileName);
-	BookServer ns = new BookServer(inventory);
+ 	
+ 	//initialize UDP port
+	try {
+		 datasocket = new DatagramSocket(udpPort);
+		 System.out.println(datasocket);
+		 listener = new ServerSocket(tcpPort);
+
+	} catch (SocketException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	
+	byte[] buf = new byte[len];
+	BookServer ns = new BookServer(inventory, datasocket);
 	System.out.println("BookServer started:");
 	while(true){
-		try {
-			DatagramSocket datasocket = new DatagramSocket(udpPort);
-			ServerSocket listener = new ServerSocket(Symbols.ServerPort);
-			Socket s;
-			while ( (s = listener.accept()) != null) {
-				Thread t = new ServerThread(ns.table, s, true);
-				t.start();
+		if(!udp){
+				try {
+					if ( (s = listener.accept()) != null) {
+						 System.out.println("TCP started");
+						Thread t = new ServerThread(BookServer.table, s, udp);
+						t.start();
+						try {
+							t.join();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		} catch (IOException e) {
-			System.err.println("Server aborted:" + e);
-		}
+				else {
+					 DatagramPacket datapacket, returnpacket; 
+					 buf = new byte[len];
+			         datapacket = new DatagramPacket(buf, buf.length);
+			         try {
+			        	 System.out.println("Waiting on UDP");
+						datasocket.receive(datapacket);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			         System.out.println("UDP started");
+			         Thread t = new UdpThread(datapacket, BookServer.table);
+			         t.start();
+			         try {
+						t.join();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+					
+		
 	}
 	
 	

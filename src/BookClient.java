@@ -10,7 +10,7 @@ public class BookClient {
         int tcpPort;
         int udpPort;
         int clientId;
-        String mode;
+        boolean mode;
         int len = 1024; // receiving byte array size
         byte[] rBuffer = new byte[len];
         DatagramPacket receivePacket, sendPacket;
@@ -30,15 +30,19 @@ public class BookClient {
         hostAddress = "localhost";
         tcpPort = 7000;// hardcoded -- must match the server's tcp port
         udpPort = 8000;// hardcoded -- must match the server's udp port
-        mode = "U";
+        boolean udpmode = false;
 
 
         try {
 
-            Socket socket = new Socket(hostAddress, tcpPort);
             Scanner sc = new Scanner(new FileReader(commandFile));
+            PrintWriter out;
+            BufferedReader in;
+            Socket socket = new Socket(hostAddress, tcpPort);
 
             while(sc.hasNextLine()) {
+            	in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                out = new PrintWriter(socket.getOutputStream(), true);
                 sendMessage = true;
                 receiveMessage = false;
                 String cmd = sc.nextLine();
@@ -47,18 +51,22 @@ public class BookClient {
                 InetAddress ia = InetAddress.getByName(hostAddress);
                 byte[] buffer;
                 String message;
+                out.flush();
+                System.out.println("First command is " + tokens[0]);
 
                 if (tokens[0].equals("setmode")) {
                     // set mode of communication
-                    mode = tokens[1];
+                    if(tokens[1].equals("T"))
+                    	udpmode = false;
+                    else
+                    	udpmode = true;
                     String[] text = {tokens[0], tokens[1]};
-                    message = String.join(" ", text);
-
+                    message = tokens[0] + " " + tokens[1];
                 } else if (tokens[0].equals("borrow")) {
                     // TODO: send appropriate command to the server and display the
                     // appropriate responses form the server
                     String[] text = {tokens[0], tokens[1], tokens[2]};
-                    message = String.join(" ", text);
+                    message = cmd;
                     receiveMessage = true;
 
 
@@ -66,7 +74,8 @@ public class BookClient {
                     // TODO: send appropriate command to the server and display the
                     // appropriate responses form the server
                     String[] text = {tokens[0], tokens[1]};
-                    message = String.join(" ", text);
+                   // message = String.join(" ", text);
+                    message = cmd;
                     receiveMessage = true;
 
 
@@ -74,20 +83,23 @@ public class BookClient {
                     // TODO: send appropriate command to the server and display the
                     // appropriate responses form the server
                     String[] text = {tokens[0]};
-                    message = String.join(" ", text);
+                   // message = String.join(" ", text);
+                    message = cmd;
                     receiveMessage = true;
 
                 } else if (tokens[0].equals("list")) {
                     // TODO: send appropriate command to the server and display the
                     // appropriate responses form the server
                     String[] text = {tokens[0], tokens[1]};
-                    message = String.join(" ", text);
+                   // message = String.join(" ", text);
+                    message = cmd;
                     receiveMessage = true;
 
                 } else if (tokens[0].equals("exit")) {
                     // TODO: send appropriate command to the server
                     String[] text = {tokens[0]};
-                    message = String.join(" ", text);
+                  //  message = String.join(" ", text);
+                    message = cmd;
 
                 } else {
                     System.out.println("ERROR: No such command");
@@ -102,13 +114,14 @@ public class BookClient {
 
                 // SEND MESSAGE
                 if(sendMessage){
-                    if(mode == "U"){
+                    if(udpmode){
                         buffer = new byte[message.length()];
                         buffer = message.getBytes();
                         sendPacket = new DatagramPacket(buffer, buffer.length, ia, udpPort);
                         datasocket.send(sendPacket);
 
                     } else {
+                    	System.out.println("About to send " + message);
                         PrintWriter pout = new PrintWriter(socket.getOutputStream());
                         pout.println(message);
                         pout.flush();
@@ -119,9 +132,9 @@ public class BookClient {
 
                 // RECEIVE MESSAGES
                 if(receiveMessage){
-                    if(mode == "U"){
+                    if(udpmode){
                         receivePacket = new DatagramPacket(rBuffer, rBuffer.length);
-                        datasocket.receive(receivePacket);
+						datasocket.receive(receivePacket);
                         retMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
                         System.out.println("Received from Server: " + retMessage);
 

@@ -11,54 +11,62 @@ public class ServerThread extends Thread {
 	}
 	public void run() {
 		try {
-			while(true){
-				//receive the message depending on what the current mode is
-				if(udpMode){
-					//receive Datagram
-				}
-				else{
-					
-				}
-				Scanner sc = new Scanner(theClient.getInputStream());
+				InputStreamReader in = new InputStreamReader(theClient.getInputStream());
+				BufferedReader bufin = new BufferedReader(in);
 				PrintWriter pout = new PrintWriter(theClient.getOutputStream());
-				String command = sc.nextLine();
+				PrintWriter out = new PrintWriter(new FileWriter("output.txt", true)); 
+				String command = bufin.readLine();
 				System.out.println("received:" + command);
-				Scanner st = new Scanner(command);  
-				String tag = st.next();
-				String tokens[] = tag.split("\\s+");
+				String retString = "hello";
+				table.printInventory();
+				String tokens[] = command.split("\\s+", 2);
+				System.out.println("First token is "+ tokens[0]);
 				if (tokens[0].equals("setmode")) {
 					if(tokens[1].equals("T"))
-						udpMode = false;
+						table.setMode(false);
 					else
-						udpMode = true;
+						table.setMode(true);
 					
 				} else if (tokens[0].equals("borrow")) {
-					//split token properly WRONGG
-					int retVal = table.borrow(tokens[1], tokens[2]);
+					String[] dupSplit = tokens[1].split("\\s+", 2);
+					dupSplit[1] = dupSplit[1].replace("\"", "");
+					int retVal = table.borrow(dupSplit[0], dupSplit[1]);
+					System.out.println(dupSplit[1]);
 					if(retVal == 0)
-						pout.println("Request Failed - Book not available");
+						retString = "Request Failed - Book not available";
 					else if (retVal == -1)
-						pout.println("Request Failed - We do not have this book");
+						retString= "Request Failed - We do not have this book";
 					else
-						pout.println("You request has been approved, " +retVal + " " + tokens[1] + " " + tokens[2]);				}
-				else if (tokens[0].equals("blockingFind")) {
-					
-				} else if (tokens[0].equals("return")) {
+						retString = "You request has been approved, " +retVal + " " + dupSplit[0] + " " + dupSplit[1];
+				} else if (tokens[0].equals("return")) {                  
 					int val = Integer.parseInt(tokens[1]);
-					table.returnBook(val);
+					int retVal = table.returnBook(val);
+					if(retVal == -1)
+						retString = val + " not found, no such borrow record\n";
+					else
+						retString=val + " is returned\n";
+					
+				} else if(tokens[0].equals("inventory")){
+					table.printInventory();
+				} else if (tokens[0].equals("list")){
+					int retVal = table.printList(tokens[1]);
+					if(retVal == -1){
+						retString="No record found for " + tokens[1] + "\n";
+					}
+				} else if (tokens[0].equals("exit")){
+					//stop processing commands from this client
+					//print inventory to file inventory.txt
 				}
+				System.out.println(retString);
+				//table.printInventory();
+				pout.write(retString);
 				pout.flush();
 				theClient.close();
+				out.println(retString);
+				out.close();
+				
 			} catch (IOException e) {
 				System.err.println(e);
 			}
-
-			}
-				
-			
-	}
-	
-	public static void handleClientRequest(){
-		
-	}
+		}
 }

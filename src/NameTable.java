@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.Map.Entry;
 
 import javax.rmi.CORBA.Util;
 
@@ -13,24 +14,29 @@ public class NameTable {
 			student_books = new HashMap<Integer, String>();
 		}
 	}
+	public DatagramSocket datasocket;
 	HashMap<String, Integer> inventory;
 	ArrayList<NameEntry> table = new ArrayList<NameEntry>(); 
-	Integer recordID;
+	Integer recordID=0;
+	boolean udpMode= true;
 	
-	public NameTable(HashMap<String,Integer> inventory){
+	public NameTable(HashMap<String,Integer> inventory, DatagramSocket datasocket){
 		this.inventory = inventory;
+		this.datasocket = datasocket;
 	}
 	public synchronized Integer borrow(String student, String bookName) {
 		System.out.println("Searching " + student);
 		for (String book: inventory.keySet()){
 			if (book.equals(bookName)){
 				//update inventory
+				System.out.println(book + " in loop");
 				int count = inventory.get(bookName);
 				if(count == 0)
 					return 0;
 				count--;
 				inventory.put(bookName, count);	
-				insert(student, bookName, recordID++);
+				recordID++;
+				this.insert(student, bookName, recordID);
 				return recordID;
 			}
 		}
@@ -50,7 +56,7 @@ public class NameTable {
 		NameEntry temp = new NameEntry(studentName);
 		temp.student_books.put(recordID, bookName);
 		table.add(temp);
-		notifyAll();
+		//notifyAll();
 		return;
 	}
 	public synchronized Integer blockingFind(String procName, String bookName) {
@@ -63,7 +69,7 @@ public class NameTable {
 		return addr;
 	}
 	
-	public synchronized void returnBook(Integer id){
+	public synchronized int returnBook(Integer id){
 		System.out.println("Searching " + id);
 		for (NameEntry student: table){
 			if (student.student_books.containsKey(id)){
@@ -74,13 +80,45 @@ public class NameTable {
 				int count = inventory.get(bookName);
 				count++;
 				inventory.put(bookName, count);	
-				return;
+				return id;
 			}
 		}
-		
+		return -1;
 		
 	}
 	public synchronized void clear() {
 		table.clear();
+	}
+	
+	public synchronized void setMode(boolean udp){
+		this.udpMode = udp;
+	}
+	
+	public synchronized void printInventory(){
+		for (Map.Entry<String, Integer> entry: inventory.entrySet()){
+			System.out.println(entry.getKey() + " " + entry.getValue() );
+		}
+	}
+	
+	public synchronized int printList(String studentName){
+		int found = -1;
+		for(NameEntry entry: table){
+			if(entry.name.equals(studentName)){
+				for(Map.Entry<Integer, String> e: entry.student_books.entrySet()){
+					System.out.println(e.getKey() + " " + e.getValue());
+				}
+				found = 1;
+			}
+		}
+		return found;
+	}
+	
+	public synchronized void udpSend(DatagramPacket packet){
+		try{
+			datasocket.send(packet);
+		}
+		catch(Exception e){
+		      e.printStackTrace();
+		    }
 	}
 }
