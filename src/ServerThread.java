@@ -35,7 +35,7 @@ public class ServerThread extends Thread {
 					else if (retVal == -1)
 						retString= "Request Failed - We do not have this book";
 					else
-						retString = "You request has been approved, " +retVal + " " + dupSplit[0] + " " + dupSplit[1];
+						retString = "You request has been approved, " +retVal + " " + dupSplit[0] + " \"" + dupSplit[1] + "\"";
 				} else if (tokens[0].equals("return")) {                  
 					int val = Integer.parseInt(tokens[1]);
 					int retVal = table.returnBook(val);

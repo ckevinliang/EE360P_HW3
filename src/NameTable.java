@@ -96,7 +96,7 @@ public class NameTable {
             for (Map.Entry<String, Integer> entry: inventory.entrySet()){
                 // find specific key value pair
                 if(i == entry.getKey()){
-                    retString = retString + entry.getKey() + " " + entry.getValue() + "\n";
+                    retString = retString + "\"" + entry.getKey() + "\" " + entry.getValue() + "\n";
                 }
             }
         }
@@ -109,7 +109,7 @@ public class NameTable {
 		for(NameEntry entry: table){
 			if(entry.name.equals(studentName)){
 				for(Map.Entry<Integer, String> e: entry.student_books.entrySet()){
-					found = found + e.getKey() + " " + e.getValue() + "\n";
+					found = found + "\"" + e.getKey() + "\" " + e.getValue() + "\n";
 				}
 				
 			}

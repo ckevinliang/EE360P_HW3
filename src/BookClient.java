@@ -96,6 +96,7 @@ public class BookClient {
                     receiveMessage = true;
 
                 } else if (tokens[0].equals("exit")) {
+
                 	break;
 
                 } else {
