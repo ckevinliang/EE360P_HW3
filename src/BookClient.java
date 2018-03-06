@@ -44,6 +44,7 @@ public class BookClient {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 sendMessage = true;
                 receiveMessage = false;
+
                 String cmd = sc.nextLine();
                 String[] tokens = cmd.split("\\s+");
                 DatagramSocket datasocket = new DatagramSocket();

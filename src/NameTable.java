@@ -16,13 +16,15 @@ public class NameTable {
 	}
 	public DatagramSocket datasocket;
 	HashMap<String, Integer> inventory;
+	ArrayList<String> orderedInventory;
 	ArrayList<NameEntry> table = new ArrayList<NameEntry>(); 
 	Integer recordID=0;
 	boolean udpMode= true;
 	
-	public NameTable(HashMap<String,Integer> inventory, DatagramSocket datasocket){
+	public NameTable(HashMap<String,Integer> inventory, DatagramSocket datasocket, ArrayList<String> orderedInventory){
 		this.inventory = inventory;
 		this.datasocket = datasocket;
+		this.orderedInventory = orderedInventory;
 	}
 	public synchronized Integer borrow(String student, String bookName) {
 		for (String book: inventory.keySet()){
@@ -89,9 +91,16 @@ public class NameTable {
 	
 	public synchronized String printInventory(){
 		String retString="";
-		for (Map.Entry<String, Integer> entry: inventory.entrySet()){
-			retString = retString + entry.getKey() + " " + entry.getValue() + "\n";
-		}
+		// loop through ordered array list that holds all the keys
+		for (String i : orderedInventory){
+            for (Map.Entry<String, Integer> entry: inventory.entrySet()){
+                // find specific key value pair
+                if(i == entry.getKey()){
+                    retString = retString + entry.getKey() + " " + entry.getValue() + "\n";
+                }
+            }
+        }
+
 		return retString;
 	}
 	

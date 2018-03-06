@@ -2,18 +2,20 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class BookServer {
 	static NameTable table;
 	
-	public BookServer(HashMap<String,Integer> inventory, DatagramSocket ds) {
-	table = new NameTable(inventory, ds);
+	public BookServer(HashMap<String,Integer> inventory, DatagramSocket ds, ArrayList<String> orderedInventory) {
+	    table = new NameTable(inventory, ds, orderedInventory);
 	}
 	
   public static void main (String[] args) {
@@ -21,6 +23,7 @@ public class BookServer {
     int udpPort;
     boolean udp = true;
     HashMap <String,Integer> inventory = new HashMap <String, Integer>();
+    ArrayList<String> orderedInventory = new ArrayList<String>();
     DatagramSocket datasocket = null;
     ServerSocket listener = null;
     Socket s;
@@ -36,7 +39,7 @@ public class BookServer {
     int len = 1024;
     
     // parse the inventory file
- 	getInventory(inventory, fileName);
+ 	getInventory(inventory, fileName, orderedInventory);
  	
  	//initialize UDP port
 	try {
@@ -51,7 +54,7 @@ public class BookServer {
 	}
 	
 	byte[] buf = new byte[len];
-	BookServer ns = new BookServer(inventory, datasocket);
+	BookServer ns = new BookServer(inventory, datasocket, orderedInventory);
 	System.out.println("BookServer started:");
     Thread udpThread = new UdpThread(BookServer.table);
     udpThread.start();
@@ -73,7 +76,7 @@ public class BookServer {
 	
 	  }
   
-  	public static void getInventory(HashMap<String,Integer> inventory, String fileName ){
+  	public static void getInventory(HashMap<String,Integer> inventory, String fileName, ArrayList<String> orderedInventory){
   	    try {
   	        // FileReader reads text files in the default encoding.
   	        FileReader fileReader = new FileReader(fileName);
@@ -87,6 +90,7 @@ public class BookServer {
   	            System.out.println(list[2]);
   	    		list[2] = list[2].replaceAll(" ", "");
   	    		inventory.put(list[1], Integer.valueOf(list[2]));
+  	    		orderedInventory.add(list[1]);
   	        }
   			
   	        // Always close files.
