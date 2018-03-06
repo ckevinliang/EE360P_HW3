@@ -19,7 +19,7 @@ public class BookServer {
   public static void main (String[] args) {
     int tcpPort;
     int udpPort;
-    boolean udp = false;
+    boolean udp = true;
     HashMap <String,Integer> inventory = new HashMap <String, Integer>();
     DatagramSocket datasocket = null;
     ServerSocket listener = null;
@@ -40,8 +40,6 @@ public class BookServer {
  	
  	//initialize UDP port
 	try {
-		 datasocket = new DatagramSocket(udpPort);
-		 System.out.println(datasocket);
 		 listener = new ServerSocket(tcpPort);
 
 	} catch (SocketException e1) {
@@ -55,51 +53,22 @@ public class BookServer {
 	byte[] buf = new byte[len];
 	BookServer ns = new BookServer(inventory, datasocket);
 	System.out.println("BookServer started:");
+    Thread udpThread = new UdpThread(BookServer.table);
+    udpThread.start();
 	while(true){
-		if(!udp){
+	
 				try {
-					if ( (s = listener.accept()) != null) {
+					while ( (s = listener.accept()) != null) {
 						 System.out.println("TCP started");
-						Thread t = new ServerThread(BookServer.table, s, udp);
+						ServerThread t = new ServerThread(BookServer.table, s, udp);
 						t.start();
-						try {
-							t.join();
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
 					}
-				} catch (IOException e) {
+					} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-				else {
-					 DatagramPacket datapacket, returnpacket; 
-					 buf = new byte[len];
-			         datapacket = new DatagramPacket(buf, buf.length);
-			         try {
-			        	 System.out.println("Waiting on UDP");
-						datasocket.receive(datapacket);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-			         System.out.println("UDP started");
-			         Thread t = new UdpThread(datapacket, BookServer.table);
-			         t.start();
-			         try {
-						t.join();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-					
 		
-	}
-	
-	
 	// what if there are quotations in the book name
 	
 	  }

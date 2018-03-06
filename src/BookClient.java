@@ -10,7 +10,6 @@ public class BookClient {
         int tcpPort;
         int udpPort;
         int clientId;
-        boolean mode;
         int len = 1024; // receiving byte array size
         byte[] rBuffer = new byte[len];
         DatagramPacket receivePacket, sendPacket;
@@ -30,7 +29,7 @@ public class BookClient {
         hostAddress = "localhost";
         tcpPort = 7000;// hardcoded -- must match the server's tcp port
         udpPort = 8000;// hardcoded -- must match the server's udp port
-        boolean udpmode = false;
+        boolean udpmode = true;
 
 
         try {
@@ -96,10 +95,7 @@ public class BookClient {
                     receiveMessage = true;
 
                 } else if (tokens[0].equals("exit")) {
-                    // TODO: send appropriate command to the server
-                    String[] text = {tokens[0]};
-                  //  message = String.join(" ", text);
-                    message = cmd;
+                	break;
 
                 } else {
                     System.out.println("ERROR: No such command");
@@ -140,7 +136,7 @@ public class BookClient {
 
                     } else {
                         clientScanner = new Scanner(socket.getInputStream());
-                        retMessage = sc.nextLine();
+                        retMessage = clientScanner.nextLine();
                         System.out.println("Received from Server: " + retMessage);
                     }
                 }

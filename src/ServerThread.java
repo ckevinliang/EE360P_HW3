@@ -5,22 +5,20 @@ public class ServerThread extends Thread {
 	boolean udpMode;
 	public ServerThread(NameTable table, Socket s, boolean udpMode) {
 		this.table = table;
-		theClient = s;
+		this.theClient = s;
 		this.udpMode = udpMode;
 		
 	}
-	public void run() {
+	@Override public void run() {
 		try {
 				InputStreamReader in = new InputStreamReader(theClient.getInputStream());
 				BufferedReader bufin = new BufferedReader(in);
-				PrintWriter pout = new PrintWriter(theClient.getOutputStream());
-				PrintWriter out = new PrintWriter(new FileWriter("output.txt", true)); 
-				String command = bufin.readLine();
-				System.out.println("received:" + command);
-				String retString = "hello";
-				table.printInventory();
+				PrintWriter pout = new PrintWriter(theClient.getOutputStream(), true);
+				String command = "";
+				String retString = "";
+				while( (command = bufin.readLine() ) != null) {
+				FileWriter out = new FileWriter("output.txt", true); 	
 				String tokens[] = command.split("\\s+", 2);
-				System.out.println("First token is "+ tokens[0]);
 				if (tokens[0].equals("setmode")) {
 					if(tokens[1].equals("T"))
 						table.setMode(false);
@@ -31,7 +29,7 @@ public class ServerThread extends Thread {
 					String[] dupSplit = tokens[1].split("\\s+", 2);
 					dupSplit[1] = dupSplit[1].replace("\"", "");
 					int retVal = table.borrow(dupSplit[0], dupSplit[1]);
-					System.out.println(dupSplit[1]);
+					System.out.println(retVal);
 					if(retVal == 0)
 						retString = "Request Failed - Book not available";
 					else if (retVal == -1)
@@ -42,28 +40,31 @@ public class ServerThread extends Thread {
 					int val = Integer.parseInt(tokens[1]);
 					int retVal = table.returnBook(val);
 					if(retVal == -1)
-						retString = val + " not found, no such borrow record\n";
+						retString = val + " not found, no such borrow record";
 					else
-						retString=val + " is returned\n";
+						retString=val + " is returned";
 					
 				} else if(tokens[0].equals("inventory")){
-					table.printInventory();
+					retString = table.printInventory();
 				} else if (tokens[0].equals("list")){
-					int retVal = table.printList(tokens[1]);
-					if(retVal == -1){
-						retString="No record found for " + tokens[1] + "\n";
+					 retString = table.printList(tokens[1]);
+					if(retString.equals("")){
+						retString="No record found for " + tokens[1] ;
 					}
 				} else if (tokens[0].equals("exit")){
-					//stop processing commands from this client
-					//print inventory to file inventory.txt
+					//shouldn't reach here
 				}
 				System.out.println(retString);
-				//table.printInventory();
-				pout.write(retString);
+				pout.println(retString);
 				pout.flush();
-				theClient.close();
-				out.println(retString);
+				out.write(retString);
+				out.write("\n");
+				out.flush();
 				out.close();
+				}
+				bufin.close();
+				pout.close();
+				theClient.close();
 				
 			} catch (IOException e) {
 				System.err.println(e);
