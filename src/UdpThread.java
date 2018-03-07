@@ -71,7 +71,7 @@ public class UdpThread extends Thread {
 		} else if (tokens[0].equals("list")){
 			retString = table.printList(tokens[1].trim());
 			if(retString.equals("")){
-				retString="No record found for " + tokens[1];
+				retString="No record found for " + tokens[1].trim();
 			}
 		} else if (tokens[0].equals("exit")){
 			retString = table.printInventory();
