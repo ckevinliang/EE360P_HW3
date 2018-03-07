@@ -2,20 +2,19 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BookServer {
 	static NameTable table;
 	
 	public BookServer(HashMap<String,Integer> inventory, DatagramSocket ds, ArrayList<String> orderedInventory) {
-	    table = new NameTable(inventory, ds, orderedInventory);
+		table = new NameTable(inventory, ds, orderedInventory);
 	}
 	
   public static void main (String[] args) {
@@ -76,7 +75,7 @@ public class BookServer {
 	
 	  }
   
-  	public static void getInventory(HashMap<String,Integer> inventory, String fileName, ArrayList<String> orderedInventory){
+  	public static void getInventory(HashMap<String,Integer> inventory, String fileName,  ArrayList<String> orderedInventory ){
   	    try {
   	        // FileReader reads text files in the default encoding.
   	        FileReader fileReader = new FileReader(fileName);

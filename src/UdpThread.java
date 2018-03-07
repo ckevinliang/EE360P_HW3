@@ -27,13 +27,7 @@ public class UdpThread extends Thread {
 		}
 		FileWriter out = null;
 		while(true){
-			try {
-				out = new FileWriter("output.txt", true);
-			} catch (IOException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			} 
-		byte[] buf = new byte[600]; 
+		byte[] buf = new byte[6000]; 
 		DatagramPacket packet = new DatagramPacket(buf, buf.length);
         try {
 			datasocket.receive(packet);
@@ -73,23 +67,14 @@ public class UdpThread extends Thread {
 				retString=val + " is returned";
 			
 		} else if(tokens[0].equals("inventory")){
-			table.printInventory();
+			retString = table.printInventory();
 		} else if (tokens[0].equals("list")){
 			retString = table.printList(tokens[1].trim());
 			if(retString.equals("")){
 				retString="No record found for " + tokens[1];
 			}
 		} else if (tokens[0].equals("exit")){
-			//should never come here
-		}
-		try {
-			out.write(retString);
-			out.write("\n");
-			out.flush();
-			out.close();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			retString = table.printInventory();
 		}
 		System.out.println(retString);
 		DatagramPacket returnPacket = new DatagramPacket(retString.getBytes(), retString.getBytes().length, 

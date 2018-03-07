@@ -16,6 +16,8 @@ public class BookClient {
         boolean sendMessage;
         boolean receiveMessage;
         Scanner clientScanner;
+        boolean endProgram = false;
+        String finalMessage = "";
 
         if (args.length != 2) {
             System.out.println("ERROR: Provide 2 arguments: commandFile, clientId");
@@ -44,14 +46,12 @@ public class BookClient {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 sendMessage = true;
                 receiveMessage = false;
-
                 String cmd = sc.nextLine();
                 String[] tokens = cmd.split("\\s+");
                 DatagramSocket datasocket = new DatagramSocket();
                 InetAddress ia = InetAddress.getByName(hostAddress);
                 byte[] buffer;
-                String message;
-                out.flush();
+                String message = "";
                 System.out.println("First command is " + tokens[0]);
 
                 if (tokens[0].equals("setmode")) {
@@ -94,15 +94,18 @@ public class BookClient {
                    // message = String.join(" ", text);
                     message = cmd;
                     receiveMessage = true;
-
+                    sendMessage=true;
                 } else if (tokens[0].equals("exit")) {
-
-                	break;
+                	sendMessage = true;
+                	message = cmd;
+                	endProgram = true;
+                	receiveMessage = true;
 
                 } else {
                     System.out.println("ERROR: No such command");
                     message = "";
                     sendMessage = false;
+                    receiveMessage = false;
                 }
 
 
@@ -126,7 +129,8 @@ public class BookClient {
                     }
                 }
 
-                String retMessage;
+                String retMessage = "";
+                
 
                 // RECEIVE MESSAGES
                 if(receiveMessage){
@@ -135,15 +139,45 @@ public class BookClient {
 						datasocket.receive(receivePacket);
                         retMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
                         System.out.println("Received from Server: " + retMessage);
+                        retMessage = retMessage.replace("@", "\n");
 
                     } else {
                         clientScanner = new Scanner(socket.getInputStream());
                         retMessage = clientScanner.nextLine();
+                        if(retMessage.isEmpty())
+                        	retMessage = clientScanner.nextLine();
+                        retMessage = retMessage.replace("@", "\n");
                         System.out.println("Received from Server: " + retMessage);
                     }
+                    if(!endProgram)
+                    	finalMessage = finalMessage + retMessage + "\n";
                 }
-
+                
+                if(endProgram){
+                	try {
+                		in.close();
+                		String fileName = "out_" + clientId + ".txt";
+                		BufferedWriter writerInventory = new BufferedWriter(new FileWriter("inventory.txt", true));
+                		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true));
+                	    writer.append(finalMessage);  
+                	    writerInventory.append(retMessage);
+                	    writer.close();
+                	    writerInventory.close();
+            		} catch (IOException e) {
+            			// TODO Auto-generated catch block
+            			e.printStackTrace();
+            		}
+                	break;
+                	
+                }
+                
+                if(endProgram){
+                	break;
+                }
+                
             }
+            
+            
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (SocketException se){
@@ -151,5 +185,6 @@ public class BookClient {
         } catch (IOException ie){
             ie.printStackTrace();
         }
+
     }
 }

@@ -3,6 +3,8 @@ import java.util.Map.Entry;
 
 import javax.rmi.CORBA.Util;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.*;
 public class NameTable {
 	class NameEntry {
@@ -22,10 +24,10 @@ public class NameTable {
 	boolean udpMode= true;
 	
 	public NameTable(HashMap<String,Integer> inventory, DatagramSocket datasocket, ArrayList<String> orderedInventory){
-		this.inventory = inventory;
-		this.datasocket = datasocket;
-		this.orderedInventory = orderedInventory;
-	}
+  		this.inventory = inventory;
+  		this.datasocket = datasocket;
+ 		this.orderedInventory = orderedInventory;
+  	}
 	public synchronized Integer borrow(String student, String bookName) {
 		for (String book: inventory.keySet()){
 			if (book.equals(bookName)){
@@ -89,31 +91,54 @@ public class NameTable {
 		this.udpMode = udp;
 	}
 	
+	public synchronized void exitProgram(){
+        try {
+        	FileWriter inventoryOut = new FileWriter("inventory.txt", true);
+            String inventoryList = this.printInventory();
+			inventoryOut.write(inventoryList);
+			inventoryOut.flush();
+	        inventoryOut.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public synchronized String printInventory(){
 		String retString="";
+		boolean found = false;
 		// loop through ordered array list that holds all the keys
-		for (String i : orderedInventory){
-            for (Map.Entry<String, Integer> entry: inventory.entrySet()){
-                // find specific key value pair
-                if(i == entry.getKey()){
-                    retString = retString + "\"" + entry.getKey() + "\" " + entry.getValue() + "\n";
-                }
-            }
-        }
-
+		 		for (String i : orderedInventory){
+		             for (Map.Entry<String, Integer> entry: inventory.entrySet()){
+		                 // find specific key value pair
+		                 if(i == entry.getKey()){
+		                	 retString = retString + "\"" + entry.getKey() + "\" " + entry.getValue() + "@";
+		                	 found = true;
+		                 }
+		             }
+		         }
+		 		if(found)
+		 			retString = retString.substring(0, retString.length()-1);
+		 
 		return retString;
 	}
 	
 	public synchronized String printList(String studentName){
 		String found = "";
+		boolean hasPerson = false;
 		for(NameEntry entry: table){
 			if(entry.name.equals(studentName)){
 				for(Map.Entry<Integer, String> e: entry.student_books.entrySet()){
-					found = found + "\"" + e.getKey() + "\" " + e.getValue() + "\n";
+					found = found + e.getKey() + " " +  "\"" + e.getValue() +  "\"" + "@";
+					hasPerson= true;
 				}
 				
 			}
 		}
+		if(hasPerson)
+			found = found.substring(0, found.length()-1);
+			
+			
 		return found;
 	}
 	
