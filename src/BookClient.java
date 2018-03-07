@@ -138,8 +138,8 @@ public class BookClient {
                         receivePacket = new DatagramPacket(rBuffer, rBuffer.length);
 						datasocket.receive(receivePacket);
                         retMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                        System.out.println("Received from Server: " + retMessage);
                         retMessage = retMessage.replace("@", "\n");
+                        System.out.println("Received from Server: " + retMessage);
 
                     } else {
                         clientScanner = new Scanner(socket.getInputStream());

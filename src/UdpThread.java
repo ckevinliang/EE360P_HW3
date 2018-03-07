@@ -57,7 +57,7 @@ public class UdpThread extends Thread {
 			else if (retVal == -1)
 				retString= "Request Failed - We do not have this book";
 			else
-				retString = "You request has been approved, " +retVal + " " + tokens[1].trim() + " \"" + tokens[2].trim() + "\"";
+				retString = "Your request has been approved, " +retVal + " " + tokens[1].trim() + " " + tokens[2].trim() ;
 		} else if (tokens[0].equals("return")) {                  
 			int val = Integer.parseInt(tokens[1].trim());
 			int retVal = table.returnBook(val);

@@ -15,9 +15,8 @@ public class ServerThread extends Thread {
 				BufferedReader bufin = new BufferedReader(in);
 				PrintWriter pout = new PrintWriter(theClient.getOutputStream(), true);
 				String command = "";
-				String retString = "";
 				while( (command = bufin.readLine() ) != null) {
-				FileWriter out = new FileWriter("output.txt", true); 	
+				String retString = "";
 				String tokens[] = command.split("\\s+", 2);
 				if (tokens[0].equals("setmode")) {
 					if(tokens[1].equals("T"))
@@ -35,7 +34,8 @@ public class ServerThread extends Thread {
 					else if (retVal == -1)
 						retString= "Request Failed - We do not have this book";
 					else
-						retString = "You request has been approved, " +retVal + " " + dupSplit[0] + " \"" + dupSplit[1] + "\"";
+						retString = "Your request has been approved, " +retVal + " " + dupSplit[0] + " \"" + dupSplit[1] + "\"";
+						
 				} else if (tokens[0].equals("return")) {                  
 					int val = Integer.parseInt(tokens[1]);
 					int retVal = table.returnBook(val);
@@ -52,15 +52,11 @@ public class ServerThread extends Thread {
 						retString="No record found for " + tokens[1] ;
 					}
 				} else if (tokens[0].equals("exit")){
-					//shouldn't reach here
+					retString = table.printInventory();
 				}
 				System.out.println(retString);
 				pout.println(retString);
 				pout.flush();
-				out.write(retString);
-				out.write("\n");
-				out.flush();
-				out.close();
 				}
 				bufin.close();
 				pout.close();
